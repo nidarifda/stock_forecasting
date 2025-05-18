@@ -4,9 +4,9 @@ import pandas as pd
 import joblib
 from tensorflow.keras.models import load_model
 
-# Load model and scaler
-model = load_model('model.pkl')
-scaler = joblib.load('minmaxscaler.pkl')
+# === Load model and scaler ===
+model = load_model("best_tuned_lstm_optuna.keras")
+scaler = joblib.load("minmaxscaler.pkl")
 
 st.set_page_config(page_title="NVDA Stock Forecast", layout="wide")
 st.title("📈 NVIDIA Stock Price Forecasting App")
