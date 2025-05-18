@@ -1,6 +1,6 @@
-streamlit
-tensorflow
-pandas
-numpy
+tensorflow>=2.12
 joblib
+streamlit
+numpy
+pandas
 scikit-learn
