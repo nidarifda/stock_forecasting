@@ -1,1 +1,1 @@
-model.save("model.pkl")
+model.save("model.keras")
