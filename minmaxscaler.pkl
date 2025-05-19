@@ -1,2 +1,1 @@
-import joblib
-joblib.dump(scaler, "minmaxscaler.pkl")
+scaler = joblib.load("minmaxscaler.pkl")
