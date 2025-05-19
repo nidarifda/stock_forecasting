@@ -4,3 +4,6 @@ streamlit
 numpy
 pandas
 scikit-learn
+matplotlib
+optuna
+openpyxl
