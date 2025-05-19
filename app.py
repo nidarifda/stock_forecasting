@@ -8,66 +8,64 @@ from tensorflow.keras.models import load_model
 st.set_page_config(
     page_title="NVDA Stock Forecast",
     page_icon="📈",
-    layout="wide"
+    layout="centered"
 )
 
-# === Load model and scaler ===
-model = load_model("best_tuned_lstm_optuna.keras")
-scaler = joblib.load("minmaxscaler.pkl")
+# === Load Model and Scaler ===
+try:
+    model = load_model("best_tuned_lstm_optuna.keras")
+    scaler = joblib.load("minmaxscaler.pkl")
+except Exception as e:
+    st.error(f"Error loading model or scaler: {e}")
+    st.stop()
 
 # === App Title ===
-st.title("NVIDIA Stock Price Forecasting App")
+st.markdown("<h1 style='text-align: center; color: #2c3e50;'>NVDA Stock Forecast</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Upload a time-series dataset and get the predicted closing price of NVIDIA stock.</p>", unsafe_allow_html=True)
+st.markdown("---")
 
-st.markdown("""
-This app uses a **Tuned LSTM model** trained on multiseries data to forecast NVIDIA's stock price.
-Upload your CSV file containing 60 time steps with 37 features (already normalized), and receive a prediction.
-""")
-
-# === Sidebar for File Upload ===
-st.sidebar.header("Upload Data")
-file = st.sidebar.file_uploader("Upload 60x37 CSV", type=['csv'])
-
-# === Downloadable Template ===
-with st.expander("Download Example Input Format"):
-    st.download_button(
-        label="Download Sample CSV (60x37)",
-        data=pd.DataFrame(np.zeros((60, 37))).to_csv(index=False).encode('utf-8'),
-        file_name="sample_input_60x37.csv",
-        mime="text/csv"
-    )
+# === Sidebar ===
+with st.sidebar:
+    st.image("https://companiesmarketcap.com/img/company-logos/256/NVDA.png", use_column_width=True)
+    st.header("Upload Input Data")
+    st.caption("Ensure your file is a **60x37 normalized CSV**. The last column must be NVDA_Close.")
+    file = st.file_uploader("Upload 60x37 CSV", type=["csv"])
 
 # === Main Prediction Logic ===
 if file:
     try:
         df = pd.read_csv(file)
-        st.success("✅ File uploaded successfully!")
-        st.markdown("### First 5 Rows of Input Data")
+        st.subheader("Preview of Uploaded Data")
         st.dataframe(df.head())
 
-        if df.shape == (60, 37):
+        if df.shape != (60, 37):
+            st.error(f"Incorrect shape: expected (60, 37), got {df.shape}")
+        else:
+            # Reshape to 3D tensor for LSTM
             input_data = np.array(df).reshape(1, 60, 37)
-            prediction = model.predict(input_data)[0][0]
 
-            # Get column names (if needed for inverse transform)
-            scaler_columns = df.columns.tolist()
-            dummy_input = np.zeros((1, len(scaler_columns)))
-            dummy_input[0, -1] = prediction
+            # Make prediction
+            raw_pred = model.predict(input_data)[0][0]
+
+            # Inverse scale only the NVDA_Close value (assumed to be the last column)
+            dummy_input = np.zeros((1, 37))
+            dummy_input[0, -1] = raw_pred
             inv_pred = scaler.inverse_transform(dummy_input)[0][-1]
 
-            st.success(f" **Predicted NVDA Closing Price: ${inv_pred:.2f}**")
-        else:
-            st.error(f"❌ Uploaded file must have shape (60, 37). Found: {df.shape}")
+            st.markdown("---")
+            st.subheader("Prediction Result")
+            st.success(f"Predicted NVIDIA Closing Price: **${inv_pred:.2f}**")
+
     except Exception as e:
-        st.error(f"⚠️ Error processing file: {e}")
+        st.error(f"⚠️ An error occurred while processing the file: {e}")
 else:
-    st.info("Upload a CSV to begin prediction.")
+    st.info("Please upload a CSV file to begin prediction.")
 
 # === Footer ===
 st.markdown("---")
-st.markdown("""
-<div style='text-align: center; font-size: 0.9em;'>
-📡 TelcoChurn AI • Powered by Optuna-Tuned LSTM • © 2025 All rights reserved  
-<br>
-🔗 <a href="https://github.com/yourusername/yourrepo" target="_blank">View Code on GitHub</a>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    "<div style='text-align: center; font-size: 0.9em;'>"
+    "Powered by a Tuned LSTM Model • Developed with Streamlit & TensorFlow • © 2025"
+    "</div>",
+    unsafe_allow_html=True
+)
