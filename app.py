@@ -8,7 +8,7 @@ from tensorflow.keras.models import load_model
 st.set_page_config(page_title="NVIDIA Stock Forecast", page_icon="📈", layout="wide")
 
 # === Load Model and Scaler ===
-model = load_model("best_tuned_lstm_optuna.keras")
+model = load_model("tuned_cnn_lstm_a_nvda_only0.9395.keras")
 scaler = joblib.load("minmaxscaler.pkl")
 
 # === App Title ===
