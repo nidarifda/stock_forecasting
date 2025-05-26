@@ -1,28 +1,40 @@
 # NVIDIA Stock Price Forecasting App
 
-This Streamlit app predicts NVIDIA’s next closing stock price using a Tuned LSTM model trained on multiseries inputs from affiliated companies (TSMC, ASML, Cadence, Synopsys).
+This Streamlit app predicts NVIDIA’s next closing stock price using a **Tuned CNN-LSTM Model A**, trained exclusively on NVIDIA stock data with engineered features and optimized hyperparameters via Optuna.
 
-## Features
-- Upload 60x37 CSV data (preprocessed & normalized)
-- Predict next-day NVDA closing price
-- Uses TensorFlow LSTM with Optuna-tuned hyperparameters
-- Built with Streamlit for deployment
+## 🚀 Features
+- Upload preprocessed and normalized 60×35 CSV sequence
+- Predict next-day NVIDIA closing price
+- Tuned CNN-LSTM architecture (Conv1D → LSTM → Dense)
+- Uses TensorFlow (.keras) model and MinMaxScaler for output inversion
+- Interactive Streamlit UI for fast deployment and testing
 
-## How to Run
-1. Clone this repo
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run: `streamlit run app.py`
-4. Upload your 60x37 CSV to predict
+## 🛠 How to Run
+1. Clone this repository
+2. Install dependencies:
+3. Start the app:
 
-## Files
-- `app.py`: Streamlit interface
-- `model.pkl`: Trained LSTM model
-- `minmaxscaler.pkl`: MinMaxScaler for inverse transformation
-- `requirements.txt`: Dependencies
+4. Upload your 60×35 normalized CSV to receive prediction
 
-## Contact
-Developed by [Nida Rifda Chairuli] | MSc Data Science (APU)
+## 📁 Project Structure
+
+| File                        | Description                                          |
+|-----------------------------|------------------------------------------------------|
+| `app.py`                   | Streamlit web interface                              |
+| `best_tuned_lstm_optuna.keras` | Tuned CNN-LSTM A (NVIDIA-only) model              |
+| `minmaxscaler.pkl`         | MinMaxScaler for reversing normalization             |
+| `requirements.txt`         | Python dependencies                                  |
+| `.devcontainer/`           | (Optional) VS Code Dev Container setup               |
+
+## ⚠️ Input Requirements
+- CSV shape must be **(60, 35)** — 60 time steps with 35 engineered NVIDIA-only features.
+- Ensure the input is normalized using the same `MinMaxScaler` used during training.
+
+## 👤 Contact
+Developed by **Nida Rifda Chairuli**  
+MSc Data Science | Asia Pacific University (APU)  
+[(https://www.linkedin.com/in/nida-rifda-chairuli/)]
 
 ---
 
-*Note: This app assumes the input data is already normalized and contains exactly 60 time steps with 37 engineered features.*
+*Note: This app is intended for educational and research purposes. It assumes financial domain knowledge and correct data preprocessing steps have been applied.*
