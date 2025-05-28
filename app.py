@@ -7,19 +7,19 @@ from tensorflow.keras.models import load_model
 # Set page config as the first Streamlit command
 st.set_page_config(page_title="NVIDIA Stock Forecast", layout="wide")
 
-# === Custom Styling ===
+# Custom Styling for full blue background and white text
 st.markdown("""
 <style>
-    .main {
-        background-color: #0d47a1; /* Dark blue */
-        color: white;
+    body {
+        background-color: #0d47a1 !important;
+        color: white !important;
     }
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
+    .main, .block-container {
+        background-color: #0d47a1 !important;
+        color: white !important;
     }
-    h1, h2, h3 {
-        color: #ffffff;
+    h1, h2, h3, h4, h5, h6, label, .stRadio label {
+        color: white !important;
     }
     .stButton>button, .stDownloadButton>button {
         background-color: #1976d2;
@@ -28,18 +28,19 @@ st.markdown("""
         border-radius: 8px;
     }
     .stRadio > div {
-        background-color: #1565c0;
+        background-color: #1976d2;
         color: white;
         padding: 1rem;
         border-radius: 10px;
         box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
     }
-    .stDataFrame {
+    .stDataFrame, .stTable {
         background-color: white;
         color: black;
     }
 </style>
 """, unsafe_allow_html=True)
+
 
 # === Load Model and Scaler ===
 model = load_model("tuned_cnn_lstm_a_nvda_only0.9395.keras")
@@ -78,10 +79,27 @@ if mode == "Upload Normalized Data (60x35)":
                 input_data = np.array(df).reshape(1, 60, 35)
                 prediction = model.predict(input_data)[0][0]
 
+                # Inverse transform for final price
                 dummy_input = np.zeros((1, 35))
                 dummy_input[0, -1] = prediction
                 inv_pred = scaler.inverse_transform(dummy_input)[0][-1]
 
+                # Plot the trend line
+                import matplotlib.pyplot as plt
+
+                past_close = df.iloc[:, -1].values  # assuming last col is normalized Close
+                full_series = np.append(past_close, prediction)
+
+                fig, ax = plt.subplots(figsize=(8, 4))
+                ax.plot(range(60), past_close, label="Last 60 Days (Normalized)", color="white")
+                ax.plot(60, prediction, 'ro', label="Next Day Prediction", markersize=6)
+                ax.set_title("Normalized Close Price Trend", color="white")
+                ax.set_xlabel("Time Step", color="white")
+                ax.set_ylabel("Normalized Price", color="white")
+                ax.tick_params(colors='white')
+                ax.legend()
+
+                st.pyplot(fig)
                 st.success(f"Predicted NVIDIA Closing Price: ${inv_pred:.2f}")
             else:
                 st.error(f"Incorrect input shape. Expected (60, 35), but received: {df.shape}")
@@ -89,45 +107,3 @@ if mode == "Upload Normalized Data (60x35)":
             st.error(f"An error occurred: {e}")
     else:
         st.info("Please upload a normalized 60x35 input file.")
-
-# === Mode 2: Upload Raw Historical Data ===
-else:
-    st.subheader("Upload Raw Historical Stock Data")
-    raw_file = st.file_uploader("Upload a CSV with historical stock prices", type=["csv"], key="raw_upload")
-
-    if raw_file:
-        try:
-            raw_df = pd.read_csv(raw_file)
-            st.success("File uploaded successfully.")
-            st.dataframe(raw_df.tail())
-
-            if raw_df.shape[0] < 60:
-                st.error("Insufficient data. At least 60 rows required.")
-            else:
-                raw_df = raw_df.select_dtypes(include=[np.number])
-                scaled = scaler.transform(raw_df)
-                scaled_df = pd.DataFrame(scaled, columns=raw_df.columns)
-
-                last_sequence = scaled_df.tail(60).to_numpy().reshape(1, 60, -1)
-                prediction = model.predict(last_sequence)[0][0]
-
-                dummy = np.zeros((1, scaled_df.shape[1]))
-                dummy[0, -1] = prediction
-                inv_pred = scaler.inverse_transform(dummy)[0][-1]
-
-                st.success(f"Predicted Next NVIDIA Closing Price: ${inv_pred:.2f}")
-        except Exception as e:
-            st.error(f"Error processing file: {e}")
-    else:
-        st.info("Upload at least 60 rows of stock data.")
-
-# === Footer ===
-st.markdown("---")
-st.markdown(
-    """
-    <div style='text-align: center; font-size: 0.9em; color: white;'>
-        NVIDIA Forecasting App | Built using CNN-LSTM and Streamlit | © 2025  
-        <br><a style='color: #90caf9;' href="https://github.com/yourusername/nvda-forecast-app" target="_blank">View Source Code</a>
-    </div>
-    """, unsafe_allow_html=True
-)
