@@ -4,32 +4,31 @@ import pandas as pd
 import joblib
 from tensorflow.keras.models import load_model
 
-# === Page Configuration ===
-st.set_page_config(page_title="NVIDIA Stock Forecast", page_icon="📈", layout="wide")
+# Page configuration
+st.set_page_config(page_title="NVIDIA Stock Forecast", layout="wide")
 
-# === Load Model and Scaler ===
+# Load model and scaler
 model = load_model("tuned_cnn_lstm_a_nvda_only0.9395.keras")
 scaler = joblib.load("minmaxscaler.pkl")
 
-# === App Title ===
+# App title and description
 st.title("NVIDIA Stock Price Forecasting App")
-
 st.markdown("""
-This app uses a **Tuned LSTM model** trained on multiseries data to forecast NVIDIA's next-day closing price.  
-Choose your input method below and upload the relevant CSV:
+This application utilizes a tuned CNN-LSTM model trained on NVIDIA stock data to forecast the next-day closing price. 
+Users may upload either normalized model-ready input or raw historical data.
 """)
 
-# === Select Input Mode ===
-mode = st.radio("Select Input Mode", ["Upload 60x37 Normalized Data", "Upload Raw Historical Data"])
+# Input mode selection
+mode = st.radio("Select Input Mode", ["Upload Normalized Data (60x37)", "Upload Raw Historical Data"])
 
-# === Input Mode 1: 60x37 Normalized Data ===
-if mode == "Upload 60x37 Normalized Data":
-    st.subheader("Upload Normalized 60x37 CSV")
-    file = st.file_uploader("Upload a 60x37 normalized CSV", type=["csv"])
+# Input mode 1: Normalized 60x37 data
+if mode == "Upload Normalized Data (60x37)":
+    st.subheader("Upload 60x37 Normalized CSV File")
+    file = st.file_uploader("Choose a 60x37 normalized CSV file", type=["csv"])
 
-    with st.expander("Download Sample Input Format"):
+    with st.expander("Download Example Input Format"):
         st.download_button(
-            label="⬇Download Sample CSV",
+            label="Download Sample CSV",
             data=pd.DataFrame(np.zeros((60, 37))).to_csv(index=False).encode('utf-8'),
             file_name="sample_input_60x37.csv",
             mime="text/csv"
@@ -38,7 +37,7 @@ if mode == "Upload 60x37 Normalized Data":
     if file:
         try:
             df = pd.read_csv(file)
-            st.success("✅ File uploaded!")
+            st.success("File uploaded successfully.")
             st.dataframe(df.head())
 
             if df.shape == (60, 37):
@@ -49,55 +48,52 @@ if mode == "Upload 60x37 Normalized Data":
                 dummy_input[0, -1] = prediction
                 inv_pred = scaler.inverse_transform(dummy_input)[0][-1]
 
-                st.success(f"📈 Predicted NVDA Closing Price: **${inv_pred:.2f}**")
+                st.success(f"Predicted NVIDIA Closing Price: ${inv_pred:.2f}")
             else:
-                st.error(f"❌ File must be shape (60, 37). Found: {df.shape}")
+                st.error(f"Incorrect input shape. Expected (60, 37), but received: {df.shape}")
         except Exception as e:
-            st.error(f"⚠️ Error processing file: {e}")
+            st.error(f"An error occurred: {e}")
     else:
-        st.info("Please upload a normalized 60x37 CSV to proceed.")
+        st.info("Please upload a normalized 60x37 input file.")
 
-# === Input Mode 2: Raw Historical Data ===
+# Input mode 2: Raw historical stock data
 else:
-    st.subheader("Upload Raw NVDA Stock CSV (Any Shape)")
-    raw_file = st.file_uploader("Upload a raw historical stock CSV", type=["csv"], key="raw_upload")
+    st.subheader("Upload Raw Historical Stock Data")
+    raw_file = st.file_uploader("Upload a CSV file containing historical stock prices", type=["csv"], key="raw_upload")
 
     if raw_file:
         try:
             raw_df = pd.read_csv(raw_file)
-            st.success("✅ File uploaded!")
+            st.success("File uploaded successfully.")
             st.dataframe(raw_df.tail())
 
             if raw_df.shape[0] < 60:
-                st.error("❌ Not enough rows. Please upload at least 60 rows of data.")
+                st.error("Insufficient data. At least 60 rows are required.")
             else:
-                # Optional: drop date or irrelevant columns
-                # raw_df.drop(columns=['Date'], errors='ignore', inplace=True)
-
                 raw_df = raw_df.select_dtypes(include=[np.number])
                 scaled = scaler.transform(raw_df)
                 scaled_df = pd.DataFrame(scaled, columns=raw_df.columns)
 
                 last_sequence = scaled_df.tail(60).to_numpy().reshape(1, 60, -1)
-
                 prediction = model.predict(last_sequence)[0][0]
+
                 dummy = np.zeros((1, scaled_df.shape[1]))
                 dummy[0, -1] = prediction
                 inv_pred = scaler.inverse_transform(dummy)[0][-1]
 
-                st.success(f"Predicted Next NVDA Close: **${inv_pred:.2f}**")
+                st.success(f"Predicted Next NVIDIA Closing Price: ${inv_pred:.2f}")
         except Exception as e:
-            st.error(f"⚠️ Error processing raw data: {e}")
+            st.error(f"An error occurred while processing the data: {e}")
     else:
-        st.info("Upload a CSV containing historical NVDA stock data (min 60 rows).")
+        st.info("Please upload a valid CSV with historical stock data (minimum 60 rows).")
 
-# === Footer ===
+# Footer
 st.markdown("---")
 st.markdown(
     """
     <div style='text-align: center; font-size: 0.9em;'>
-        📊 NVDA Forecast App • Powered by Optuna-Tuned LSTM • © 2025 All rights reserved  
-        <br>🔗 <a href="https://github.com/yourusername/nvda-forecast-app" target="_blank">View Code on GitHub</a>
+        NVIDIA Forecasting App | Built using CNN-LSTM and Streamlit | © 2025  
+        <br><a href="https://github.com/yourusername/nvda-forecast-app" target="_blank">View Source Code</a>
     </div>
     """, unsafe_allow_html=True
 )
