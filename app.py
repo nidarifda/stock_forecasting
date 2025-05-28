@@ -18,7 +18,7 @@ st.markdown("""
         background-color: #0d47a1 !important;
         color: white !important;
     }
-    h1, h2, h3, h4, h5, h6, label, .stRadio label {
+    h1, h2, h3, h4, h5, h6, label, .stRadio label, .css-17eq0hr, .css-1v0mbdj {
         color: white !important;
     }
     .stButton>button, .stDownloadButton>button {
@@ -34,9 +34,15 @@ st.markdown("""
         border-radius: 10px;
         box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
     }
+    .stFileUploader, .stDownloadButton, .stExpander {
+        background-color: #1565c0 !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 0.5rem !important;
+    }
     .stDataFrame, .stTable {
-        background-color: white;
-        color: black;
+        background-color: white !important;
+        color: black !important;
     }
 </style>
 """, unsafe_allow_html=True)
