@@ -4,34 +4,61 @@ import pandas as pd
 import joblib
 from tensorflow.keras.models import load_model
 
-# Page configuration
+# === Custom Styling ===
+st.markdown("""
+<style>
+    .main {
+        background-color: #e8f0fe;
+    }
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    h1, h2, h3 {
+        color: #1a237e;
+    }
+    .stButton>button, .stDownloadButton>button {
+        background-color: #1565c0;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+    }
+    .stRadio > div {
+        background-color: #ffffff;
+        padding: 1rem;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# === Page Configuration ===
 st.set_page_config(page_title="NVIDIA Stock Forecast", layout="wide")
 
-# Load model and scaler
+# === Load Model and Scaler ===
 model = load_model("tuned_cnn_lstm_a_nvda_only0.9395.keras")
 scaler = joblib.load("minmaxscaler.pkl")
 
-# App title and description
+# === App Title & Description ===
 st.title("NVIDIA Stock Price Forecasting App")
 st.markdown("""
-This application utilizes a tuned CNN-LSTM model trained on NVIDIA stock data to forecast the next-day closing price. 
+This application utilizes a tuned CNN-LSTM model trained on NVIDIA stock data to forecast the next-day closing price.  
 Users may upload either normalized model-ready input or raw historical data.
 """)
 
-# Input mode selection
-mode = st.radio("Select Input Mode", ["Upload 60x35 Normalized Data", "Upload Raw Historical Data"])
+# === Input Mode Selection ===
+mode = st.radio("Select Input Mode", ["Upload Normalized Data (60x37)", "Upload Raw Historical Data"])
 
-
-# Input mode 1: Normalized 60x37 data
-if mode == "Upload Normalized Data (60x35)":
-    st.subheader("Upload 60x35 Normalized CSV File")
-    file = st.file_uploader("Choose a 60x35 normalized CSV file", type=["csv"])
+# === Mode 1: Upload Normalized Data ===
+if mode == "Upload Normalized Data (60x37)":
+    st.subheader("Upload 60x37 Normalized CSV File")
+    file = st.file_uploader("Choose a 60x37 normalized CSV file", type=["csv"])
 
     with st.expander("Download Example Input Format"):
         st.download_button(
             label="Download Sample CSV",
-            data=pd.DataFrame(np.zeros((60, 35))).to_csv(index=False).encode('utf-8'),
-            file_name="sample_input_60x35.csv",
+            data=pd.DataFrame(np.zeros((60, 37))).to_csv(index=False).encode('utf-8'),
+            file_name="sample_input_60x37.csv",
             mime="text/csv"
         )
 
@@ -57,7 +84,7 @@ if mode == "Upload Normalized Data (60x35)":
     else:
         st.info("Please upload a normalized 60x37 input file.")
 
-# Input mode 2: Raw historical stock data
+# === Mode 2: Upload Raw Historical Data ===
 else:
     st.subheader("Upload Raw Historical Stock Data")
     raw_file = st.file_uploader("Upload a CSV file containing historical stock prices", type=["csv"], key="raw_upload")
@@ -88,7 +115,7 @@ else:
     else:
         st.info("Please upload a valid CSV with historical stock data (minimum 60 rows).")
 
-# Footer
+# === Footer ===
 st.markdown("---")
 st.markdown(
     """
