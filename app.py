@@ -4,6 +4,9 @@ import pandas as pd
 import joblib
 from tensorflow.keras.models import load_model
 
+# Set page config FIRST before any Streamlit commands
+st.set_page_config(page_title="NVIDIA Stock Forecast", layout="wide")
+
 # === Custom Styling ===
 st.markdown("""
 <style>
@@ -17,7 +20,13 @@ st.markdown("""
     h1, h2, h3 {
         color: #1a237e;
     }
-    .stButton>button, .stDownloadButton>button {
+    .stButton>button {
+        background-color: #1e88e5;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+    }
+    .stDownloadButton>button {
         background-color: #1565c0;
         color: white;
         font-weight: bold;
@@ -32,8 +41,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# === Page Configuration ===
-st.set_page_config(page_title="NVIDIA Stock Forecast", layout="wide")
 
 # === Load Model and Scaler ===
 model = load_model("tuned_cnn_lstm_a_nvda_only0.9395.keras")
