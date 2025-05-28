@@ -19,18 +19,19 @@ Users may upload either normalized model-ready input or raw historical data.
 """)
 
 # Input mode selection
-mode = st.radio("Select Input Mode", ["Upload Normalized Data (60x37)", "Upload Raw Historical Data"])
+mode = st.radio("Select Input Mode", ["Upload 60x35 Normalized Data", "Upload Raw Historical Data"])
+
 
 # Input mode 1: Normalized 60x37 data
-if mode == "Upload Normalized Data (60x37)":
-    st.subheader("Upload 60x37 Normalized CSV File")
-    file = st.file_uploader("Choose a 60x37 normalized CSV file", type=["csv"])
+if mode == "Upload Normalized Data (60x35)":
+    st.subheader("Upload 60x35 Normalized CSV File")
+    file = st.file_uploader("Choose a 60x35 normalized CSV file", type=["csv"])
 
     with st.expander("Download Example Input Format"):
         st.download_button(
             label="Download Sample CSV",
-            data=pd.DataFrame(np.zeros((60, 37))).to_csv(index=False).encode('utf-8'),
-            file_name="sample_input_60x37.csv",
+            data=pd.DataFrame(np.zeros((60, 35))).to_csv(index=False).encode('utf-8'),
+            file_name="sample_input_60x35.csv",
             mime="text/csv"
         )
 
