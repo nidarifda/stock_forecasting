@@ -52,12 +52,17 @@ model = load_model("tuned_cnn_lstm_a_nvda_only0.9395.keras")
 scaler = joblib.load("minmaxscaler.pkl")
 
 # === Title and Description ===
-st.title("Stock Price Forecasting App")
 st.markdown("""
-This application uses a tuned CNN-LSTM model trained on 60 time steps of stock data,  
-each with 4 normalized technical indicators, to forecast the next-day closing price.  
-Upload a 60×5 CSV (including a date column) to generate a prediction.
-""")
+<div style='text-align: center;'>
+    <h1 style='color:#7c3aed;'>Stock Price Forecasting App</h1>
+    <p style='font-size:18px; color:#2b2f42;'>
+        This application uses a tuned CNN-LSTM model trained on 60 time steps of stock data,<br>
+        each with 4 normalized technical indicators, to forecast the next-day closing price.<br>
+        Upload a 60×5 CSV (including a date column) to generate a prediction.
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
 
 # === Upload File ===
 st.subheader("Upload Normalized CSV (60 rows × 5 columns incl. Date)")
