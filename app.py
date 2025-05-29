@@ -4,6 +4,7 @@ import pandas as pd
 import joblib
 import plotly.graph_objects as go
 from tensorflow.keras.models import load_model
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 # === Page Configuration ===
 st.set_page_config(page_title="Stock Forecast App", layout="wide")
@@ -48,7 +49,7 @@ scaler = joblib.load("minmaxscaler.pkl")
 # === Header ===
 st.title("Stock Price Forecasting App")
 st.markdown("""
-<div style='text-align: center; max-width: 720px; margin: auto; font-size: 0.80rem; color: #3a3a3a;'>
+<div style='text-align: center; max-width: 720px; margin: auto; font-size: 0.85rem; color: #3a3a3a;'>
 This app uses a CNN-LSTM model trained on 60 days of normalized stock data to forecast the next-day closing price.<br>
 Upload a 60×5 CSV (including a date column) to generate a prediction.
 </div>
@@ -68,7 +69,7 @@ with st.expander("Download Sample CSV Format"):
             file_name="Simulated_NVDA_Sample_Input__60x4_.csv",
             mime="text/csv"
         )
-    except Exception as e:
+    except Exception:
         st.warning("Sample file not found in repository.")
 
 # === Prediction & Plot ===
@@ -130,6 +131,13 @@ if file:
 
             st.plotly_chart(fig, use_container_width=True)
             st.success(f"Predicted Next Closing Price: ${inv_pred:.2f}")
+
+            # === Evaluation Metrics ===
+            extended = np.append(past_close[:-1], prediction)
+            mae = mean_absolute_error(past_close, extended)
+            rmse = np.sqrt(mean_squared_error(past_close, extended))
+            st.markdown(f"**Model Evaluation:**  MAE = `{mae:.4f}`,  RMSE = `{rmse:.4f}`")
+
         else:
             st.error(f"Expected shape (60, 5) but got {df.shape}")
     except Exception as e:
