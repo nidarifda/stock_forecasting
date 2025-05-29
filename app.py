@@ -5,33 +5,32 @@ import joblib
 import plotly.graph_objs as go
 from tensorflow.keras.models import load_model
 
-# === Set Page Configuration ===
-st.set_page_config(page_title="NVIDIA Stock Forecast", layout="wide")
+# === Page Configuration ===
+st.set_page_config(page_title="Stock Forecasting App", layout="wide")
 
-# === Custom Styling: Clean UI ===
+# === Custom Styling (Lilac Theme) ===
 st.markdown("""
 <style>
 body {
-    background-color: #f5f7fa !important;
+    background-color: #f3e8f5 !important;
     color: #2b2f42 !important;
 }
 .main, .block-container {
-    background-color: #f5f7fa !important;
+    background-color: #f3e8f5 !important;
     padding: 2rem;
 }
 h1, h2, h3, h4 {
-    color: #2b2f42;
+    color: #7c3aed !important;
     font-family: 'Segoe UI', sans-serif;
 }
 .stButton>button, .stDownloadButton>button {
-    background-color: #1976d2;
+    background-color: #7c3aed;
     color: white;
     border-radius: 6px;
     font-weight: 600;
 }
 .stRadio > div {
     background-color: #ffffff;
-    color: black;
     padding: 1rem;
     border-radius: 8px;
     box-shadow: 0 1px 6px rgba(0,0,0,0.1);
@@ -52,36 +51,45 @@ h1, h2, h3, h4 {
 model = load_model("tuned_cnn_lstm_a_nvda_only0.9395.keras")
 scaler = joblib.load("minmaxscaler.pkl")
 
-# === App Title & Description ===
+# === Title and Description ===
 st.title("Stock Price Forecasting App")
 st.markdown("""
-This application leverages a tuned CNN-LSTM model trained on 60 time steps of stock data, each with 4 technical indicators, to forecast the next-day closing price.
-Upload a 60×4 normalized CSV (60 rows × 4 features) to generate a prediction.
+This application uses a tuned CNN-LSTM model trained on 60 time steps of stock data,  
+each with 4 normalized technical indicators, to forecast the next-day closing price.  
+Upload a 60×5 CSV (including a date column) to generate a prediction.
 """)
 
-# === Upload 60x4 Normalized CSV ===
-st.subheader("Upload 60x4 Normalized CSV File")
-file = st.file_uploader("Choose a 60x4 normalized CSV file", type=["csv"])
+# === Upload File ===
+st.subheader("Upload Normalized CSV (60 rows × 5 columns incl. Date)")
+file = st.file_uploader("Upload your 60x5 normalized CSV (Date + 4 features)", type=["csv"])
 
-# === Download Sample File ===
+# === Sample CSV Download ===
 with st.expander("Download Example Format"):
-    sample_df = pd.read_csv("sample_nvda_input_60x4.csv")
+    sample_data = pd.DataFrame({
+        'Date': pd.date_range(end=pd.Timestamp.today(), periods=60).strftime('%Y-%m-%d'),
+        'MA_10': np.random.rand(60),
+        'RSI': np.random.rand(60),
+        'Volume': np.random.rand(60),
+        'Normalized_Close': np.random.rand(60)
+    })
     st.download_button(
         label="Download Sample CSV",
-        data=sample_df.to_csv(index=False).encode('utf-8'),
-        file_name="sample_nvda_input_60x4.csv",
+        data=sample_data.to_csv(index=False).encode('utf-8'),
+        file_name="sample_stock_input_60x5.csv",
         mime="text/csv"
     )
 
-# === Prediction & Visualization ===
+# === Prediction ===
 if file:
     try:
         df = pd.read_csv(file)
         st.success("File uploaded successfully.")
         st.dataframe(df.head())
 
-        if df.shape == (60, 4):
-            input_data = np.array(df).reshape(1, 60, 4)
+        if df.shape == (60, 5):
+            # Drop date, keep numeric
+            input_data = np.array(df.iloc[:, 1:]).reshape(1, 60, 4)
+
             prediction = model.predict(input_data)[0][0]
 
             # Inverse transform to actual closing price
@@ -89,40 +97,41 @@ if file:
             dummy_input[0, -1] = prediction
             inv_pred = scaler.inverse_transform(dummy_input)[0][-1]
 
-            # === Plot with Plotly ===
-            past_close = df.iloc[:, -1].values  # assumes last column = normalized close
+            # Plot with Plotly
+            dates = df['Date'].values
+            past_close = df.iloc[:, -1].values
             fig = go.Figure()
             fig.add_trace(go.Scatter(
-                x=list(range(60)),
+                x=dates,
                 y=past_close,
                 mode='lines+markers',
                 name='Last 60 Days (Normalized)',
-                line=dict(color='red')
+                line=dict(color='#a855f7')
             ))
             fig.add_trace(go.Scatter(
-                x=[60],
+                x=[dates[-1]],  # Last date
                 y=[prediction],
                 mode='markers+text',
                 name='Next Day Prediction',
-                marker=dict(color='blue', size=10),
+                marker=dict(color='black', size=10),
                 text=[f"{prediction:.4f}"],
                 textposition="top center"
             ))
             fig.update_layout(
                 title="Normalized Close Price Forecast",
-                xaxis_title="Time Step",
+                xaxis_title="Date",
                 yaxis_title="Normalized Price",
                 plot_bgcolor='white',
-                paper_bgcolor='#f5f7fa',
+                paper_bgcolor='#f3e8f5',
                 font=dict(color="#2b2f42"),
                 height=400
             )
             st.plotly_chart(fig)
 
-            st.success(f"Predicted Stock Closing Price: ${inv_pred:.2f}")
+            st.success(f"Predicted Closing Price: **${inv_pred:.2f}**")
         else:
-            st.error(f"Incorrect input shape. Expected (60, 4), but got {df.shape}")
+            st.error(f"Incorrect input shape. Expected 60 rows × 5 columns, got {df.shape}")
     except Exception as e:
         st.error(f"An error occurred: {e}")
 else:
-    st.info("Please upload a normalized 60x4 input file.")
+    st.info("Please upload a normalized CSV file in the correct format.")
