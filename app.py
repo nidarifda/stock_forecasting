@@ -64,12 +64,14 @@ st.subheader("Upload 60x4 Normalized CSV File")
 file = st.file_uploader("Choose a 60x4 normalized CSV file", type=["csv"])
 
 with st.expander("Download Example Format"):
+    sample_df = pd.read_csv("sample_nvda_input_60x4.csv")
     st.download_button(
-        label="Download Sample CSV",
-        data=pd.DataFrame(np.zeros((60, 4))).to_csv(index=False).encode('utf-8'),
-        file_name="sample_input_60x4.csv",
+        label="Download CSV Sample",
+        data=sample_df.to_csv(index=False).encode('utf-8'),
+        file_name="sample_nvda_input_60x4.csv",
         mime="text/csv"
     )
+
 
 if file:
     try:
