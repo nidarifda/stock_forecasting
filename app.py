@@ -54,8 +54,6 @@ Upload a 60×5 CSV (including a date column) to generate a prediction.
 </div>
 """, unsafe_allow_html=True)
 
-""", unsafe_allow_html=True)
-
 # === File Upload ===
 st.subheader("Upload Normalized CSV (60 rows × 5 columns incl. Date)")
 file = st.file_uploader("Choose a CSV file", type=["csv"])
