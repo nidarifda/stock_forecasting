@@ -29,7 +29,7 @@ st.markdown("""
         border-radius: 8px;
     }
     .stRadio > div {
-        background-color: #ffffff;
+        background-color: #061f46;
         color: black;
         padding: 1rem;
         border-radius: 10px;
