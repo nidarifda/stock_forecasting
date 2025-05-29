@@ -57,12 +57,14 @@ Upload a 60×5 CSV (including a date column) to generate a prediction.
 </div>
 """, unsafe_allow_html=True)
 
-# === Sidebar Configuration ===
+# === Sidebar Model Selection ===
 st.sidebar.header("⚙️ Configuration")
+model_choice = st.sidebar.selectbox("Choose Model Version", ["Tuned Model", "Baseline Model"])
 show_ci = st.sidebar.checkbox("Show Confidence Interval", value=False)
 
-# === Load Model and Scaler ===
-model = load_model("tuned_cnn_lstm_a_nvda_only0.9395.keras")
+# === Load Selected Model ===
+model_file = "tuned_cnn_lstm_a_nvda_only0.9395.keras" if model_choice == "Tuned Model" else "baseline_model.keras"
+model = load_model(model_file)
 scaler = joblib.load("minmaxscaler.pkl")
 
 # === File Upload ===
