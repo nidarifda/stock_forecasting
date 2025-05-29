@@ -2,49 +2,49 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import joblib
-import matplotlib.pyplot as plt
+import plotly.graph_objs as go
 from tensorflow.keras.models import load_model
 
-# === Set page config ===
+# === Set Page Configuration ===
 st.set_page_config(page_title="NVIDIA Stock Forecast", layout="wide")
 
-# === Custom Styling: Blue background, white text ===
+# === Custom Styling: Clean UI ===
 st.markdown("""
 <style>
-    body {
-        background-color: #061f46 !important;
-        color: white !important;
-    }
-    .main, .block-container {
-        background-color: #061f46 !important;
-        color: white !important;
-    }
-    h1, h2, h3, h4, h5, h6, label, .stRadio label, .css-17eq0hr, .css-1v0mbdj {
-        color: white !important;
-    }
-    .stButton>button, .stDownloadButton>button {
-        background-color: #ffffff;
-        color: black;
-        font-weight: bold;
-        border-radius: 8px;
-    }
-    .stRadio > div {
-        background-color: #061f46;
-        color: black;
-        padding: 1rem;
-        border-radius: 10px;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
-    }
-    .stFileUploader, .stDownloadButton, .stExpander {
-        background-color: #061f46 !important;
-        color: white !important;
-        border-radius: 10px !important;
-        padding: 0.5rem !important;
-    }
-    .stDataFrame, .stTable {
-        background-color: white !important;
-        color: black !important;
-    }
+body {
+    background-color: #f5f7fa !important;
+    color: #2b2f42 !important;
+}
+.main, .block-container {
+    background-color: #f5f7fa !important;
+    padding: 2rem;
+}
+h1, h2, h3, h4 {
+    color: #2b2f42;
+    font-family: 'Segoe UI', sans-serif;
+}
+.stButton>button, .stDownloadButton>button {
+    background-color: #1976d2;
+    color: white;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.stRadio > div {
+    background-color: #ffffff;
+    color: black;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+}
+.stFileUploader, .stExpander {
+    background-color: #ffffff !important;
+    padding: 1rem;
+    border-radius: 8px;
+}
+.stDataFrame, .stTable {
+    background-color: white !important;
+    color: black !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -53,26 +53,27 @@ model = load_model("tuned_cnn_lstm_a_nvda_only0.9395.keras")
 scaler = joblib.load("minmaxscaler.pkl")
 
 # === App Title & Description ===
-st.title("NVIDIA Stock Price Forecasting App")
+st.title("Stock Price Forecasting App")
 st.markdown("""
-This application uses a tuned CNN-LSTM model trained exclusively on NVIDIA stock data (60 time steps × 4 features)  
-to forecast the next-day closing price. Upload normalized model-ready input to begin.
+This application leverages a tuned CNN-LSTM model trained on 60 time steps of stock data, each with 4 technical indicators, to forecast the next-day closing price.
+Upload a 60×4 normalized CSV (60 rows × 4 features) to generate a prediction.
 """)
 
-# === Upload 60x4 Normalized Input ===
+# === Upload 60x4 Normalized CSV ===
 st.subheader("Upload 60x4 Normalized CSV File")
 file = st.file_uploader("Choose a 60x4 normalized CSV file", type=["csv"])
 
+# === Download Sample File ===
 with st.expander("Download Example Format"):
     sample_df = pd.read_csv("sample_nvda_input_60x4.csv")
     st.download_button(
-        label="Download CSV Sample",
+        label="Download Sample CSV",
         data=sample_df.to_csv(index=False).encode('utf-8'),
         file_name="sample_nvda_input_60x4.csv",
         mime="text/csv"
     )
 
-
+# === Prediction & Visualization ===
 if file:
     try:
         df = pd.read_csv(file)
@@ -88,19 +89,37 @@ if file:
             dummy_input[0, -1] = prediction
             inv_pred = scaler.inverse_transform(dummy_input)[0][-1]
 
-            # Plot Normalized Trend (last column assumed to be close price)
-            past_close = df.iloc[:, -1].values
-            fig, ax = plt.subplots(figsize=(8, 4))
-            ax.plot(range(60), past_close, label="Last 60 Days (Normalized)", color="white")
-            ax.plot(60, prediction, 'ro', label="Next Day Prediction", markersize=6)
-            ax.set_title("Normalized Close Price Trend", color="white")
-            ax.set_xlabel("Time Step", color="white")
-            ax.set_ylabel("Normalized Price", color="white")
-            ax.tick_params(colors='white')
-            ax.legend()
-            st.pyplot(fig)
+            # === Plot with Plotly ===
+            past_close = df.iloc[:, -1].values  # assumes last column = normalized close
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=list(range(60)),
+                y=past_close,
+                mode='lines+markers',
+                name='Last 60 Days (Normalized)',
+                line=dict(color='red')
+            ))
+            fig.add_trace(go.Scatter(
+                x=[60],
+                y=[prediction],
+                mode='markers+text',
+                name='Next Day Prediction',
+                marker=dict(color='blue', size=10),
+                text=[f"{prediction:.4f}"],
+                textposition="top center"
+            ))
+            fig.update_layout(
+                title="Normalized Close Price Forecast",
+                xaxis_title="Time Step",
+                yaxis_title="Normalized Price",
+                plot_bgcolor='white',
+                paper_bgcolor='#f5f7fa',
+                font=dict(color="#2b2f42"),
+                height=400
+            )
+            st.plotly_chart(fig)
 
-            st.success(f"Predicted NVIDIA Closing Price: ${inv_pred:.2f}")
+            st.success(f"Predicted Stock Closing Price: ${inv_pred:.2f}")
         else:
             st.error(f"Incorrect input shape. Expected (60, 4), but got {df.shape}")
     except Exception as e:
