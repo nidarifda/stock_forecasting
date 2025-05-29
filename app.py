@@ -49,8 +49,8 @@ scaler = joblib.load("minmaxscaler.pkl")
 st.title("Stock Price Forecasting App")
 st.markdown("""
 <div style='text-align: center; max-width: 720px; margin: auto; font-size: 0.95rem; color: #3a3a3a;'>
-This app uses a CNN-LSTM model trained on 60 days of normalized stock data  
-to forecast the next-day closing price.
+This application uses a tuned CNN-LSTM model trained on 60 time steps of stock data, each with 4 normalized technical indicators, to forecast the next-day closing price.  
+Upload a 60×5 CSV (including a date column) to generate a prediction.
 </div>
 """, unsafe_allow_html=True)
 
