@@ -27,7 +27,7 @@ This Streamlit app predicts NVIDIA’s next closing stock price using a **Tuned 
 | `.devcontainer/`           | (Optional) VS Code Dev Container setup               |
 
 ## ⚠️ Input Requirements
-- CSV shape must be **(60, 35)** — 60 time steps with 35 engineered NVIDIA-only features.
+- CSV shape must be **(60, 4)** — 60 time steps with 4 engineered NVIDIA-only features.
 - Ensure the input is normalized using the same `MinMaxScaler` used during training.
 
 ## 👤 Contact
